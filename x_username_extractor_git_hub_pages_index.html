@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>X Username Extractor — GitHub Pages</title>
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --panel: #131720;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --accent: #22d3ee;
+      --accent-2: #60a5fa;
+      --danger: #fb7185;
+      --ok: #34d399;
+      --warning: #f59e0b;
+      --radius: 16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 30% -10%, rgba(34,211,238,.15), transparent),
+                  radial-gradient(1000px 600px at 80% 10%, rgba(96,165,250,.10), transparent),
+                  var(--bg);
+      color:var(--text);
+    }
+    .container{max-width:1100px;margin:40px auto;padding:0 16px}
+    header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    header h1{font-size: clamp(20px, 3vw, 28px);margin:0}
+    header .tag{font-size:12px;color:var(--muted);border:1px solid #263042;padding:2px 8px;border-radius:999px}
+
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));border:1px solid #233042;padding:18px;border-radius:var(--radius);box-shadow:0 8px 30px rgba(0,0,0,.25)}
+    .grid{display:grid;grid-template-columns:1fr;gap:16px}
+    @media (min-width: 980px){ .grid{grid-template-columns: 1.2fr .8fr} }
+
+    textarea{
+      width:100%;min-height:220px;background:#0e1218;border:1px solid #253042;color:var(--text);
+      border-radius:14px;padding:14px;resize:vertical;font-size:14px;line-height:1.45;
+    }
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{
+      background:linear-gradient(90deg, var(--accent), var(--accent-2));
+      color:#041318; border:0; padding:10px 14px; border-radius:12px; font-weight:600; cursor:pointer;
+      box-shadow:0 6px 18px rgba(34,211,238,.25);
+    }
+    .btn.secondary{background:#141a24;color:var(--text);border:1px solid #263042;box-shadow:none}
+    .btn.ghost{background:transparent;color:var(--muted);border:1px dashed #334155}
+    .btn.danger{background:linear-gradient(90deg, #fb7185, #f43f5e); color:#2a0610}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+
+    .hint{font-size:12px;color:var(--muted)}
+
+    table{width:100%;border-collapse:collapse;background:#0e1218;border:1px solid #253042;border-radius:12px;overflow:hidden}
+    thead{background:#121826}
+    th,td{padding:10px 12px;border-bottom:1px solid #1f2937;font-size:13px}
+    tbody tr:hover{background:#111827}
+    code.inline{background:#0b1220;border:1px solid #1f2a3b;padding:2px 6px;border-radius:8px}
+
+    .stat{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px}
+    .pill{border:1px solid #263042;padding:4px 8px;border-radius:999px}
+    .ok{color:var(--ok)}
+    .warn{color:var(--warning)}
+    .danger{color:var(--danger)}
+    .dropzone{border:1px dashed #334155;border-radius:14px;padding:12px;text-align:center;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>X Username Extractor</h1>
+      <span class="tag">Client‑side • GitHub Pages ready</span>
+    </header>
+    <p class="hint">Dán danh sách link bài viết X/Twitter (mỗi dòng một link). Công cụ sẽ trích xuất <strong>username</strong> và <strong>tweet ID</strong> ngay trên trình duyệt — phù hợp để host trên GitHub Pages, không cần server/API.</p>
+
+    <div class="grid">
+      <section class="card">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <div class="stat"><span class="pill">Hỗ trợ: <code class="inline">x.com</code>, <code class="inline">twitter.com</code>, <code class="inline">mobile.twitter.com</code>, <code class="inline">fxtwitter.com</code>, <code class="inline">vxtwitter.com</code>, <code class="inline">nitter</code></span></div>
+          <div class="row">
+            <button id="btnSample" class="btn ghost" type="button">Dán ví dụ</button>
+            <button id="btnClear" class="btn secondary" type="button">Xoá</button>
+          </div>
+        </div>
+        <textarea id="input" placeholder="Ví dụ:\nhttps://x.com/username/status/1234567890123456789\nhttps://twitter.com/someone/status/9876543210987654321?s=20\n..."></textarea>
+
+        <div class="row" style="margin-top:10px;align-items:center;justify-content:space-between">
+          <div class="row" style="gap:8px">
+            <input id="dedupe" type="checkbox" checked /> <label for="dedupe" class="hint">Loại bỏ trùng lặp</label>
+            <input id="skipBlank" type="checkbox" checked /> <label for="skipBlank" class="hint">Bỏ qua dòng trống</label>
+          </div>
+          <div class="row">
+            <label for="file" class="btn ghost" style="display:inline-block">Tải CSV link</label>
+            <input type="file" id="file" accept=".csv,.txt" style="display:none" />
+            <button id="btnExtract" class="btn" type="button">Trích xuất</button>
+          </div>
+        </div>
+
+        <div id="dropzone" class="dropzone" style="margin-top:10px">Kéo & thả file .csv/.txt vào đây</div>
+      </section>
+
+      <aside class="card">
+        <h3 style="margin-top:0">Xuất kết quả</h3>
+        <div class="row" style="flex-wrap:wrap">
+          <button id="btnCopyUsernames" class="btn secondary" type="button">Copy usernames</button>
+          <button id="btnDownloadCSV" class="btn secondary" type="button">Tải CSV</button>
+          <button id="btnDownloadJSON" class="btn secondary" type="button">Tải JSON</button>
+        </div>
+        <p class="hint" style="margin-top:8px">CSV gồm cột: <code class="inline">original_url,username,tweet_id,source,valid</code></p>
+        <hr style="border-color:#223043;opacity:.5" />
+        <div class="stat">
+          <span>Tổng: <span id="statTotal" class="ok">0</span></span>
+          <span>• Hợp lệ: <span id="statValid" class="ok">0</span></span>
+          <span>• Không nhận dạng: <span id="statInvalid" class="warn">0</span></span>
+        </div>
+      </aside>
+    </div>
+
+    <section class="card" style="margin-top:16px">
+      <div style="overflow:auto">
+        <table id="table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Original URL</th>
+              <th>Username</th>
+              <th>Tweet ID</th>
+              <th>Source</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h3 style="margin-top:0">Hướng dẫn nhanh</h3>
+      <ol>
+        <li>Dán danh sách link bài viết X/Twitter vào ô trên (mỗi dòng 1 link).</li>
+        <li>Bấm <strong>Trích xuất</strong> để lấy <em>username</em> và <em>tweet ID</em>.</li>
+        <li>Dùng các nút <em>Copy</em> hoặc <em>Tải CSV/JSON</em> để xuất dữ liệu.</li>
+      </ol>
+      <p class="hint">Lưu ý: các link dạng <code class="inline">/i/web/status/{id}</code> không chứa username trong URL, công cụ sẽ đánh dấu <em>không nhận dạng</em> (không fetch mạng để đảm bảo chạy được trên GitHub Pages/CORS-free).</p>
+    </section>
+  </div>
+
+  <script>
+    const input = document.getElementById('input');
+    const btnExtract = document.getElementById('btnExtract');
+    const btnSample = document.getElementById('btnSample');
+    const btnClear = document.getElementById('btnClear');
+    const tableBody = document.querySelector('#table tbody');
+    const statTotal = document.getElementById('statTotal');
+    const statValid = document.getElementById('statValid');
+    const statInvalid = document.getElementById('statInvalid');
+    const btnCopyUsernames = document.getElementById('btnCopyUsernames');
+    const btnDownloadCSV = document.getElementById('btnDownloadCSV');
+    const btnDownloadJSON = document.getElementById('btnDownloadJSON');
+    const fileInput = document.getElementById('file');
+    const dropzone = document.getElementById('dropzone');
+    const dedupe = document.getElementById('dedupe');
+    const skipBlank = document.getElementById('skipBlank');
+
+    let results = [];
+
+    const SOURCES = [
+      'x.com','www.x.com',
+      'twitter.com','www.twitter.com','mobile.twitter.com',
+      'fxtwitter.com','vxtwitter.com',
+      'nitter.net','www.nitter.net'
+    ];
+
+    function parseUrl(raw){
+      if(!raw) return null;
+      try{
+        let s = (''+raw).trim();
+        if(!s) return null;
+        // Allow commas-separated
+        s = s.replace(/\s+/g,' ');
+        // If not a URL but looks like ID, bail out as non-url
+        if(/^\d{10,}$/.test(s)) return { original: raw, valid:false, reason:'ID only' };
+        if(!/^https?:\/\//i.test(s)) s = 'https://' + s; // tolerate missing scheme
+        const u = new URL(s);
+        const host = (u.hostname || '').toLowerCase();
+        const source = host;
+        if(!SOURCES.includes(host)){
+          return { original: raw, valid:false, reason:'Unsupported host', source };
+        }
+        // Normalize path
+        const path = u.pathname.replace(/\/+$/,'');
+        const parts = path.split('/').filter(Boolean);
+        // Common patterns: /{username}/status/{id}
+        if(parts.length >= 3 && parts[1] === 'status'){
+          const username = parts[0];
+          const id = parts[2].replace(/[^0-9]/g,'');
+          if(username && id){
+            return { original: raw, username, tweet_id:id, source, valid:true };
+          }
+        }
+        // Some mirrors: /status/{id} may exist (without username) -> cannot infer username
+        if(parts.length >= 2 && parts[0] === 'status'){
+          const id = parts[1].replace(/[^0-9]/g,'');
+          return { original: raw, username:'', tweet_id:id, source, valid:false, reason:'No username in URL' };
+        }
+        // Twitter web app short: /i/web/status/{id}
+        if(parts.length >= 4 && parts[0]==='i' && parts[1]==='web' && parts[2]==='status'){
+          const id = parts[3].replace(/[^0-9]/g,'');
+          return { original: raw, username:'', tweet_id:id, source, valid:false, reason:'No username in URL' };
+        }
+        // Nitter variant: /{username}/status/{id}
+        if(parts.length >= 3 && parts[1]==='status'){
+          const username = parts[0];
+          const id = parts[2].replace(/[^0-9]/g,'');
+          if(username && id){
+            return { original: raw, username, tweet_id:id, source, valid:true };
+          }
+        }
+        return { original: raw, valid:false, reason:'Unrecognized path', source };
+      }catch(e){
+        return { original: raw, valid:false, reason:'Invalid URL' };
+      }
+    }
+
+    function extract(text){
+      const lines = (text||'')
+        .split(/\r?\n/) // split by lines first
+        .flatMap(l => l.split(/[\s,]+/)) // then split by whitespace/commas
+        .map(s => s.trim())
+        .filter(s => skipBlank.checked ? s.length>0 : true);
+      const unique = dedupe.checked ? Array.from(new Set(lines)) : lines;
+      const parsed = unique.map(parseUrl);
+      results = parsed.map((r,i) => ({ idx:i+1, ...r }));
+      render();
+    }
+
+    function render(){
+      tableBody.innerHTML = '';
+      let valid=0, invalid=0;
+      for(const r of results){
+        const tr = document.createElement('tr');
+        const status = r.valid ? '<span class="ok">ok</span>' : `<span class="warn">${r.reason||'invalid'}</span>`;
+        if(r.valid) valid++; else invalid++;
+        tr.innerHTML = `
+          <td>${r.idx}</td>
+          <td><a href="${escapeHtmlAttr(r.original)}" target="_blank" rel="noopener noreferrer">${escapeHtml(r.original)}</a></td>
+          <td>${r.username?('@'+escapeHtml(r.username)):'<span class="warn">(none)</span>'}</td>
+          <td>${r.tweet_id || ''}</td>
+          <td>${r.source || ''}</td>
+          <td>${status}</td>
+        `;
+        tableBody.appendChild(tr);
+      }
+      statTotal.textContent = results.length;
+      statValid.textContent = valid;
+      statInvalid.textContent = invalid;
+    }
+
+    function escapeHtml(str){
+      return (''+str)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/\"/g,'&quot;');
+    }
+    function escapeHtmlAttr(str){
+      return (''+str).replace(/"/g,'&quot;');
+    }
+
+    function copyUsernames(){
+      const usernames = results.filter(r=>r.username).map(r=>r.username);
+      if(!usernames.length){ alert('Không có username nào để copy.'); return; }
+      const text = Array.from(new Set(usernames)).join('\n');
+      navigator.clipboard.writeText(text).then(()=>{
+        toast('Đã copy '+text.split('\n').length+' username.');
+      }).catch(()=>{
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        try{ document.execCommand('copy'); toast('Đã copy '+text.split('\n').length+' username.'); }
+        catch(e){ alert('Copy thất bại, hãy copy thủ công.'); }
+        finally{ document.body.removeChild(ta); }
+      });
+    }
+
+    function downloadFile(filename, content, type='text/plain'){
+      const blob = new Blob([content], {type});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      setTimeout(()=> URL.revokeObjectURL(url), 2000);
+    }
+
+    function toCSV(rows){
+      const headers = ['original_url','username','tweet_id','source','valid'];
+      const esc = v => '"'+((''+(v??'')).replace(/"/g,'""'))+'"';
+      const out = [headers.join(',')].concat(rows.map(r=>[
+        esc(r.original), esc(r.username||''), esc(r.tweet_id||''), esc(r.source||''), esc(r.valid)
+      ].join(',')));
+      return out.join('\n');
+    }
+
+    function toast(text){
+      const div = document.createElement('div');
+      div.textContent = text;
+      div.style.position='fixed';
+      div.style.bottom='20px';
+      div.style.left='50%';
+      div.style.transform='translateX(-50%)';
+      div.style.background='rgba(34,211,238,.15)';
+      div.style.border='1px solid #22d3ee55';
+      div.style.padding='8px 12px';
+      div.style.borderRadius='10px';
+      div.style.color='var(--text)';
+      div.style.backdropFilter='blur(4px)';
+      document.body.appendChild(div);
+      setTimeout(()=>div.remove(), 1800);
+    }
+
+    // Events
+    btnExtract.addEventListener('click', ()=> extract(input.value));
+    btnClear.addEventListener('click', ()=>{ input.value=''; results=[]; render(); });
+    btnSample.addEventListener('click', ()=>{
+      const sample = [
+        'https://x.com/jack/status/20',
+        'https://twitter.com/TwitterDev/status/1234567890123456789?s=20',
+        'mobile.twitter.com/some_user/status/9876543210987654321',
+        'https://fxtwitter.com/alpha_beta/status/1712345678901234567',
+        'https://twitter.com/i/web/status/1712345678901234567'
+      ].join('\n');
+      input.value = sample;
+    });
+    btnCopyUsernames.addEventListener('click', copyUsernames);
+    btnDownloadCSV.addEventListener('click', ()=>{
+      if(!results.length){ alert('Chưa có dữ liệu.'); return; }
+      downloadFile('usernames.csv', toCSV(results), 'text/csv');
+    });
+    btnDownloadJSON.addEventListener('click', ()=>{
+      if(!results.length){ alert('Chưa có dữ liệu.'); return; }
+      downloadFile('usernames.json', JSON.stringify(results, null, 2), 'application/json');
+    });
+
+    fileInput.addEventListener('change', async (e)=>{
+      const file = e.target.files?.[0];
+      if(!file) return;
+      const text = await file.text();
+      // try to parse CSV (assume there may be a column named url or link)
+      const guess = text.includes(',') || text.includes('\n') ? text : text.replace(/\s+/g,'\n');
+      input.value = guess; extract(input.value);
+    });
+
+    // Drag & drop zone
+    ;['dragenter','dragover'].forEach(evt=> dropzone.addEventListener(evt, e=>{ e.preventDefault(); dropzone.style.background='#0b1220'; }));
+    ;['dragleave','drop'].forEach(evt=> dropzone.addEventListener(evt, e=>{ e.preventDefault(); dropzone.style.background='transparent'; }));
+    dropzone.addEventListener('drop', async (e)=>{
+      const file = e.dataTransfer.files?.[0];
+      if(!file) return; const text = await file.text(); input.value = text; extract(text);
+    });
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>
