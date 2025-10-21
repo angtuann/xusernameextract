@@ -72,7 +72,7 @@
       <h1>X Username Extractor</h1>
       <span class="tag">Client‑side • GitHub Pages ready</span>
     </header>
-    <p class="hint">Dán danh sách link bài viết X/Twitter (mỗi dòng một link). Công cụ sẽ trích xuất <strong>username</strong> và <strong>tweet ID</strong> ngay trên trình duyệt — phù hợp để host trên GitHub Pages, không cần server/API.</p>
+    <p class="hint">Dán danh sách link bài viết X/Twitter (mỗi dòng một link) <strong>hoặc cả một đoạn văn bản lẫn lộn</strong>. Công cụ sẽ tự <strong>lọc URL</strong> rồi trích xuất <strong>username</strong> và <strong>tweet ID</strong> ngay trên trình duyệt — phù hợp để host trên GitHub Pages, không cần server/API.</p>
 
     <div class="grid">
       <section class="card">
@@ -89,6 +89,7 @@
           <div class="row" style="gap:8px">
             <input id="dedupe" type="checkbox" checked /> <label for="dedupe" class="hint">Loại bỏ trùng lặp</label>
             <input id="skipBlank" type="checkbox" checked /> <label for="skipBlank" class="hint">Bỏ qua dòng trống</label>
+            <input id="findUrls" type="checkbox" checked /> <label for="findUrls" class="hint">Tự động lọc URL trong đoạn văn</label>
           </div>
           <div class="row">
             <label for="file" class="btn ghost" style="display:inline-block">Tải CSV link</label>
@@ -162,6 +163,7 @@
     const dropzone = document.getElementById('dropzone');
     const dedupe = document.getElementById('dedupe');
     const skipBlank = document.getElementById('skipBlank');
+    const findUrlsToggle = document.getElementById('findUrls');
 
     let results = [];
 
@@ -224,11 +226,19 @@
     }
 
     function extract(text){
-      const lines = (text||'')
-        .split(/\r?\n/) // split by lines first
-        .flatMap(l => l.split(/[\s,]+/)) // then split by whitespace/commas
-        .map(s => s.trim())
-        .filter(s => skipBlank.checked ? s.length>0 : true);
+      let candidates = [];
+      const urlRe = new RegExp('(?:https?:\\/\\/)?(?:www\\.)?(?:x\\.com|twitter\\.com|mobile\\.twitter\\.com|fxtwitter\\.com|vxtwitter\\.com|nitter\\.net)\\/[^\\s)]+','gi');
+      if(findUrlsToggle && findUrlsToggle.checked){
+        const matches = (text||'').match(urlRe) || [];
+        const extra = (text||'').split(/\\r?\\n/).map(s=>s.trim()).filter(Boolean);
+        candidates = matches.concat(extra);
+      } else {
+        candidates = (text||'')
+          .split(/\\r?\\n/)
+          .flatMap(l => l.split(/[\\s,]+/))
+          .map(s => s.trim());
+      }
+      const lines = skipBlank.checked ? candidates.filter(s=>s.length>0) : candidates;
       const unique = dedupe.checked ? Array.from(new Set(lines)) : lines;
       const parsed = unique.map(parseUrl);
       results = parsed.map((r,i) => ({ idx:i+1, ...r }));
