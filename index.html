@@ -229,9 +229,14 @@
       let candidates = [];
       const urlRe = new RegExp('(?:https?:\\/\\/)?(?:www\\.)?(?:x\\.com|twitter\\.com|mobile\\.twitter\\.com|fxtwitter\\.com|vxtwitter\\.com|nitter\\.net)\\/[^\\s)]+','gi');
       if(findUrlsToggle && findUrlsToggle.checked){
-        const matches = (text||'').match(urlRe) || [];
-        const extra = (text||'').split(/\\r?\\n/).map(s=>s.trim()).filter(Boolean);
-        candidates = matches.concat(extra);
+  candidates = findUrls(text);
+} else {
+  candidates = (text||'')
+    .split(/\r?\n/)
+    .flatMap(l => l.split(/[\s,]+/))
+    .map(s => s.trim());
+}
+
       } else {
         candidates = (text||'')
           .split(/\\r?\\n/)
