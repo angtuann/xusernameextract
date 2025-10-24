@@ -51,13 +51,14 @@
 
     a{color:var(--link);text-decoration:none}
     a:visited{color:var(--link-visited)}
+    .dropzone{border:1px dashed #334155;border-radius:14px;padding:12px;text-align:center;color:#94a3b8}
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>X Extractor</h1>
-      <span class="tag">by @tn4nh</span>
+      <h1>X Username Extractor</h1>
+      <span class="tag">Client-side • GitHub Pages ready</span>
     </header>
 
     <div class="grid">
@@ -125,13 +126,11 @@
     const SOURCES=['x.com','twitter.com','mobile.twitter.com','fxtwitter.com','vxtwitter.com','nitter.net'];
 
     function parseInput(raw){
-      raw=raw.trim();
+      raw=(raw||'').trim();
       if(!raw) return {original:'',username:'',tweet_id:'',valid:false,isUser:false,isLink:false};
-      // Username dạng @user
       if(/^@[a-zA-Z0-9_]+$/.test(raw)){
         return {original:'',username:raw.slice(1),tweet_id:'',valid:true,isUser:true,isLink:false};
       }
-      // Link tweet
       try{
         if(!/^https?:\/\//i.test(raw)) raw='https://'+raw;
         const u=new URL(raw);
@@ -144,17 +143,30 @@
     }
 
     function extract(text){
-      let cands=[];
+      // Lọc URL hợp lệ
       const urlRe=/(?:https?:\/\/)?(?:www\.)?(?:x\.com|twitter\.com|mobile\.twitter\.com|fxtwitter\.com|vxtwitter\.com|nitter\.net)\/[^\s)]+/gi;
-      const userRe=/@[a-zA-Z0-9_]+/g;
+      // Lấy username nếu nguyên dòng là @username
+      if(!text) text='';
+      let urls=[];
+      let users=[];
       if(findUrlsToggle.checked){
-        cands=(text.match(urlRe)||[]).concat(text.match(userRe)||[]);
-      }else{
-        cands=text.split(/\r?\n/);
+        urls = (text.match(urlRe)||[]);
+        // split theo dòng, chỉ lấy các dòng mà toàn bộ là @username
+        const lines = (text||'').split(/\r?\n/).map(l=>l.trim());
+        users = lines.filter(l=>/^@[a-zA-Z0-9_]+$/.test(l));
+      } else {
+        const lines=(text||'').split(/\r?\n/).map(l=>l.trim());
+        urls = lines.filter(l=>l.match(urlRe));
+        users = lines.filter(l=>/^@[a-zA-Z0-9_]+$/.test(l));
+        // thêm các dòng khác để parseInput thử (nhưng chúng không chứa @ giữa dòng vì ta lọc users riêng)
+        const others = lines.filter(l=>!urls.includes(l) && !users.includes(l));
+        urls = urls.concat(others);
       }
-      const lines=skipBlank.checked?cands.filter(s=>s.trim().length):cands;
-      const uniq=dedupe.checked?[...new Set(lines)]:lines;
-      results=uniq.map(parseInput).map((r,i)=>({...r,idx:i+1}));
+
+      let cands = urls.concat(users);
+      const linesFinal = skipBlank.checked ? cands.filter(s=>s && s.trim().length) : cands;
+      const uniq = dedupe.checked ? Array.from(new Set(linesFinal)) : linesFinal;
+      results = uniq.map(parseInput).map((r,i)=>({...r,idx:i+1}));
       render();
     }
 
@@ -162,14 +174,14 @@
       tableBody.innerHTML='';
       results.forEach(r=>{
         const tr=document.createElement('tr');
-        let urlCell=r.isLink?`<a href="${r.original}" target="_blank">${r.original}</a>`:'';
-        let userCell=r.isUser? r.username : (r.isLink? r.username: '');
-        let idCell=r.isLink? r.tweet_id: '';
-        tr.innerHTML=`<td>${r.idx}</td><td>${urlCell}</td><td>${userCell}</td><td>${idCell}</td><td style="color:${r.valid?'#34d399':'#f59e0b'}">${r.valid?'ok':'invalid'}</td>`;
+        const urlCell = r.isLink ? `<a href="${r.original}" target="_blank" rel="noopener noreferrer">${r.original}</a>` : '';
+        const userCell = r.isUser ? r.username : (r.isLink ? r.username : '');
+        const idCell = r.isLink ? r.tweet_id : '';
+        tr.innerHTML = `<td>${r.idx}</td><td>${urlCell}</td><td>${userCell}</td><td>${idCell}</td><td style="color:${r.valid?'#34d399':'#f59e0b'}">${r.valid?'ok':'invalid'}</td>`;
         tableBody.appendChild(tr);
       });
-      totalLinks.textContent=`Tổng link: ${results.filter(r=>r.isLink).length}`;
-      totalUsers.textContent=`Tổng username: ${results.filter(r=>r.isUser||r.username).length}`;
+      totalLinks.textContent = `Tổng link: ${results.filter(r=>r.isLink).length}`;
+      totalUsers.textContent = `Tổng username: ${results.filter(r=>r.isUser || r.username).length}`;
     }
 
     function copyToClipboard(text){navigator.clipboard.writeText(text).then(()=>alert('Đã copy')).catch(()=>alert('Copy lỗi'))}
@@ -179,12 +191,18 @@
     btnCopyIds.onclick=()=>copyToClipboard(results.filter(r=>r.isLink).map(r=>r.tweet_id).join('\n'));
 
     btnDownloadTxt.onclick=()=>{
-      const txt=results.map(r=>[r.original,r.username,r.tweet_id].filter(Boolean).join('\n')).join('\n');
+      const txt = results.map(r=>[r.original,r.username,r.tweet_id].filter(Boolean).join('\n')).join('\n');
       const blob=new Blob([txt],{type:'text/plain'});
       const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='data.txt';a.click();
     }
 
     btnExtract.onclick=()=>extract(input.value);
+
+    // Drag & drop
+    const dropzone=document.getElementById('dropzone');
+    ['dragenter','dragover'].forEach(evt=>dropzone.addEventListener(evt,e=>{e.preventDefault();dropzone.style.background='#0b1220'}));
+    ['dragleave','drop'].forEach(evt=>dropzone.addEventListener(evt,e=>{e.preventDefault();dropzone.style.background='transparent'}));
+    dropzone.addEventListener('drop',async e=>{const f=e.dataTransfer.files?.[0];if(!f)return;const t=await f.text();input.value=t;extract(t)});
   </script>
 </body>
 </html>
