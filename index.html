@@ -73,8 +73,8 @@
 <body>
   <div class="container">
     <header>
-      <h1>Lọc LINK/USERNAME X by K</h1>
-      <span class="tag"> </span>
+      <h1>X Username Extractor</h1>
+      <span class="tag">Client-side • GitHub Pages ready</span>
     </header>
     <div class="grid">
       <section class="card">
@@ -94,16 +94,13 @@
 
       <aside class="card">
         <h3 style="margin-top:0">Xuất kết quả</h3>
-        <div class=\"row\" style=\"flex-wrap:wrap\">
-          <button id=\"btnCopyUrls\" class=\"btn\" type=\"button\">Copy URLs<\/button>
-          <button id=\"btnCopyUsernames\" class=\"btn\" type=\"button\">Copy Usernames<\/button>
-          <button id=\"btnCopyIds\" class=\"btn\" type=\"button\">Copy Tweet IDs<\/button>
-          <button id=\"btnDownloadTxt\" class=\"btn\" type=\"button\">Tải TXT<\/button>
-        <\/div>
-        <div class=\"stat\" style=\"gap:12px\">
-          <span class=\"pill\" id=\"totalLinks\">Tổng link: 0<\/span>
-          <span class=\"pill\" id=\"totalUsers\">Tổng username: 0<\/span>
-        <\/div>
+        <div class="row" style="flex-wrap:wrap">
+          <button id="btnCopyUrls" class="btn secondary" type="button">Copy URLs</button>
+          <button id="btnCopyUsernames" class="btn secondary" type="button">Copy Usernames</button>
+          <button id="btnCopyIds" class="btn secondary" type="button">Copy Tweet IDs</button>
+          <button id="btnDownloadTxt" class="btn secondary" type="button">Tải TXT</button>
+        </div>
+        <div class="stat"><span id="totalLinks">Tổng: 0 link</span></div>
       </aside>
     </div>
 
@@ -137,7 +134,6 @@
     const skipBlank=document.getElementById('skipBlank');
     const findUrlsToggle=document.getElementById('findUrls');
     const totalLinks=document.getElementById('totalLinks');
-    const totalUsers=document.getElementById('totalUsers');
 
     let results=[];
     const SOURCES=['x.com','twitter.com','mobile.twitter.com','fxtwitter.com','vxtwitter.com','nitter.net'];
@@ -183,9 +179,7 @@
         tr.innerHTML=`<td>${r.idx}</td><td>${r.original.startsWith('http')?`<a href="${r.original}" target="_blank">${r.original}</a>`:r.original}</td><td>${r.username||''}</td><td>${r.tweet_id||''}</td><td style="color:${r.valid?'#34d399':'#f59e0b'}">${r.valid?'ok':'invalid'}</td>`;
         tableBody.appendChild(tr);
       });
-      totalLinks.textContent=`Tổng link: ${results.length}`;
-      const userCount = results.filter(r=>r.username).length;
-      if(totalUsers) totalUsers.textContent = `Tổng username: ${userCount}`;
+      totalLinks.textContent=`Tổng: ${results.length} link`;
     }
 
     function copyToClipboard(text){navigator.clipboard.writeText(text).then(()=>alert('Đã copy')).catch(()=>alert('Copy lỗi'))}
