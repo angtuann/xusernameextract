@@ -7,22 +7,19 @@
   <style>
     :root {
       --bg: #0b0d10;
-      --panel: #131720;
       --muted: #94a3b8;
       --text: #e5e7eb;
       --accent: #22d3ee;
       --accent-2: #60a5fa;
-      --danger: #fb7185;
       --ok: #34d399;
-      --warning: #f59e0b;
+      --warn: #f59e0b;
+      --link: #facc15;     /* vàng */
+      --visited: #ffffff;  /* trắng khi đã click */
       --radius: 16px;
-      --link: #facc15; /* vàng */
-      --link-visited: #ffffff; /* trắng */
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
     body{
-      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
       background: radial-gradient(1200px 600px at 30% -10%, rgba(34,211,238,.15), transparent),
                   radial-gradient(1000px 600px at 80% 10%, rgba(96,165,250,.10), transparent),
                   var(--bg);
@@ -30,44 +27,30 @@
     }
     .container{max-width:1100px;margin:40px auto;padding:0 16px}
     header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-    header h1{font-size: clamp(20px, 3vw, 28px);margin:0}
-    header .tag{font-size:12px;color:var(--muted);border:1px solid #263042;padding:2px 8px;border-radius:999px}
+    header h1{margin:0;font-size:clamp(20px,3vw,28px)}
+    .tag{font-size:12px;color:var(--muted);border:1px solid #263042;padding:2px 8px;border-radius:999px}
 
-    .card{background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));border:1px solid #233042;padding:18px;border-radius:var(--radius);box-shadow:0 8px 30px rgba(0,0,0,.25)}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid #233042;padding:18px;border-radius:var(--radius);box-shadow:0 8px 30px rgba(0,0,0,.25)}
     .grid{display:grid;grid-template-columns:1fr;gap:16px}
-    @media (min-width: 980px){ .grid{grid-template-columns: 1.2fr .8fr} }
+    @media (min-width:980px){.grid{grid-template-columns:1.2fr .8fr}}
 
-    textarea{
-      width:100%;min-height:220px;background:#0e1218;border:1px solid #253042;color:var(--text);
-      border-radius:14px;padding:14px;resize:vertical;font-size:14px;line-height:1.45;
-    }
+    textarea{width:100%;min-height:220px;background:#0e1218;border:1px solid #253042;color:var(--text);border-radius:14px;padding:14px;resize:vertical}
     .row{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{
-      background:linear-gradient(90deg, var(--accent), var(--accent-2));
-      color:#041318; border:0; padding:10px 14px; border-radius:12px; font-weight:600; cursor:pointer;
-      box-shadow:0 6px 18px rgba(34,211,238,.25);
-    }
-    .btn.secondary{background:#141a24;color:var(--text);border:1px solid #263042;box-shadow:none}
-    .btn.ghost{background:transparent;color:var(--muted);border:1px dashed #334155}
-
-    .hint{font-size:12px;color:var(--muted)}
+    .btn{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#041318;border:0;padding:10px 14px;border-radius:12px;font-weight:600;cursor:pointer;box-shadow:0 6px 18px rgba(34,211,238,.25)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
 
     table{width:100%;border-collapse:collapse;background:#0e1218;border:1px solid #253042;border-radius:12px;overflow:hidden}
     thead{background:#121826}
-    th,td{padding:10px 12px;border-bottom:1px solid #1f2937;font-size:13px}
+    th,td{padding:10px 12px;border-bottom:1px solid #1f2937;font-size:13px;vertical-align:top}
     tbody tr:hover{background:#111827}
+    .table-wrap{max-height:520px;overflow:auto}
 
-    .table-container{max-height:500px;overflow-y:auto}
-
-    .stat{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px;margin-top:8px}
-    .pill{border:1px solid #263042;padding:4px 8px;border-radius:999px}
-    .ok{color:var(--ok)}
-    .warn{color:var(--warning)}
-
-    .dropzone{border:1px dashed #334155;border-radius:14px;padding:12px;text-align:center;color:var(--muted)}
+    .stats{display:flex;gap:12px;margin-top:10px}
+    .pill{border:1px solid #263042;padding:6px 10px;border-radius:999px;background:#0e1218}
 
     a{color:var(--link);text-decoration:none}
-    a:visited{color:var(--link-visited)}
+    a:visited{color:var(--visited)}
+    .dropzone{border:1px dashed #334155;border-radius:14px;padding:12px;text-align:center;color:#94a3b8}
   </style>
 </head>
 <body>
@@ -76,14 +59,18 @@
       <h1>X Username Extractor</h1>
       <span class="tag">Client-side • GitHub Pages ready</span>
     </header>
+
     <div class="grid">
       <section class="card">
-        <textarea id="input" placeholder="Dán link hoặc username (@user) tại đây"></textarea>
+        <textarea id="input" placeholder="Dán link X/Twitter hoặc username dạng @user ở đây..."></textarea>
         <div class="row" style="margin-top:10px;align-items:center;justify-content:space-between">
           <div class="row" style="gap:8px">
-            <input id="dedupe" type="checkbox" checked /> <label for="dedupe" class="hint">Loại bỏ trùng</label>
-            <input id="skipBlank" type="checkbox" checked /> <label for="skipBlank" class="hint">Bỏ trống</label>
-            <input id="findUrls" type="checkbox" checked /> <label for="findUrls" class="hint">Tự động lọc URL</label>
+            <input id="dedupe" type="checkbox" checked>
+            <label for="dedupe" class="hint">Loại bỏ trùng</label>
+            <input id="skipBlank" type="checkbox" checked>
+            <label for="skipBlank" class="hint">Bỏ trống</label>
+            <input id="findUrls" type="checkbox" checked>
+            <label for="findUrls" class="hint">Tự động lọc URL</label>
           </div>
           <div class="row">
             <button id="btnExtract" class="btn" type="button">Trích xuất</button>
@@ -93,19 +80,22 @@
       </section>
 
       <aside class="card">
-        <h3 style="margin-top:0">Xuất kết quả</h3>
+        <h3 style="margin:0 0 8px 0">Xuất kết quả</h3>
         <div class="row" style="flex-wrap:wrap">
-          <button id="btnCopyUrls" class="btn secondary" type="button">Copy URLs</button>
-          <button id="btnCopyUsernames" class="btn secondary" type="button">Copy Usernames</button>
-          <button id="btnCopyIds" class="btn secondary" type="button">Copy Tweet IDs</button>
-          <button id="btnDownloadTxt" class="btn secondary" type="button">Tải TXT</button>
+          <button id="btnCopyUrls" class="btn" type="button">Copy URLs</button>
+          <button id="btnCopyUsernames" class="btn" type="button">Copy Usernames</button>
+          <button id="btnCopyIds" class="btn" type="button">Copy Tweet IDs</button>
+          <button id="btnDownloadTxt" class="btn" type="button">Tải TXT</button>
         </div>
-        <div class="stat"><span id="totalLinks">Tổng: 0 link</span></div>
+        <div class="stats">
+          <span id="totalLinks" class="pill">Tổng link: 0</span>
+          <span id="totalUsers" class="pill">Tổng username: 0</span>
+        </div>
       </aside>
     </div>
 
     <section class="card" style="margin-top:16px">
-      <div class="table-container">
+      <div class="table-wrap">
         <table id="table">
           <thead>
             <tr>
@@ -123,78 +113,100 @@
   </div>
 
   <script>
-    const input=document.getElementById('input');
-    const btnExtract=document.getElementById('btnExtract');
-    const tableBody=document.querySelector('#table tbody');
-    const btnCopyUrls=document.getElementById('btnCopyUrls');
-    const btnCopyUsernames=document.getElementById('btnCopyUsernames');
-    const btnCopyIds=document.getElementById('btnCopyIds');
-    const btnDownloadTxt=document.getElementById('btnDownloadTxt');
-    const dedupe=document.getElementById('dedupe');
-    const skipBlank=document.getElementById('skipBlank');
-    const findUrlsToggle=document.getElementById('findUrls');
-    const totalLinks=document.getElementById('totalLinks');
+    const input = document.getElementById('input');
+    const btnExtract = document.getElementById('btnExtract');
+    const tableBody = document.querySelector('#table tbody');
+    const btnCopyUrls = document.getElementById('btnCopyUrls');
+    const btnCopyUsernames = document.getElementById('btnCopyUsernames');
+    const btnCopyIds = document.getElementById('btnCopyIds');
+    const btnDownloadTxt = document.getElementById('btnDownloadTxt');
+    const dedupe = document.getElementById('dedupe');
+    const skipBlank = document.getElementById('skipBlank');
+    const findUrlsToggle = document.getElementById('findUrls');
+    const totalLinks = document.getElementById('totalLinks');
+    const totalUsers = document.getElementById('totalUsers');
 
-    let results=[];
-    const SOURCES=['x.com','twitter.com','mobile.twitter.com','fxtwitter.com','vxtwitter.com','nitter.net'];
+    let results = [];
+    const SOURCES = ['x.com','twitter.com','mobile.twitter.com','fxtwitter.com','vxtwitter.com','nitter.net'];
 
     function parseInput(raw){
-      raw=raw.trim();
-      if(!raw) return {original:raw,valid:false};
-      // Nếu là username dạng @user
-      if(/^@\w+$/i.test(raw)){
-        return {original:raw,username:raw.replace('@',''),tweet_id:'',valid:true};
+      raw = (raw||'').trim();
+      if(!raw) return {original: raw, valid:false};
+      // Username dạng @user
+      if(/^@[a-zA-Z0-9_]+$/.test(raw)){
+        return {original: raw, username: raw.slice(1), tweet_id: '', valid:true};
       }
-      // Nếu là link
+      // Link tweet
       try{
-        if(!/^https?:\/\//i.test(raw)) raw='https://'+raw;
-        const u=new URL(raw);
-        if(!SOURCES.some(h=>u.hostname.includes(h))) return {original:raw,valid:false};
-        const p=u.pathname.split('/').filter(Boolean);
-        if(p.length>=3 && p[1]==='status') return {original:raw,username:p[0],tweet_id:p[2],valid:true};
-        if(p.length>=2 && p[0]==='status') return {original:raw,username:'',tweet_id:p[1],valid:true};
-        return {original:raw,valid:false};
-      }catch(e){return {original:raw,valid:false};}
+        if(!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
+        const u = new URL(raw);
+        if(!SOURCES.some(h => u.hostname.includes(h))) return {original: raw, valid:false};
+        const p = u.pathname.split('/').filter(Boolean);
+        if(p.length>=3 && p[1]==='status') return {original: raw, username: p[0], tweet_id: p[2], valid:true};
+        if(p.length>=2 && p[0]==='status') return {original: raw, username: '', tweet_id: p[1], valid:true};
+        return {original: raw, valid:false};
+      }catch(e){ return {original: raw, valid:false}; }
     }
 
     function extract(text){
-      let cands=[];
-      const urlRe=/(?:https?:\/\/)?(?:www\.)?(?:x\.com|twitter\.com|mobile\.twitter\.com|fxtwitter\.com|vxtwitter\.com|nitter\.net)\/[^\s)]+/gi;
-      const userRe=/@[a-zA-Z0-9_]+/g;
+      let cands = [];
+      const urlRe = /(?:https?:\/\/)?(?:www\.)?(?:x\.com|twitter\.com|mobile\.twitter\.com|fxtwitter\.com|vxtwitter\.com|nitter\.net)\/[^\s)]+/gi;
+      const userRe = /@[a-zA-Z0-9_]+/g;
       if(findUrlsToggle.checked){
-        cands=(text.match(urlRe)||[]).concat(text.match(userRe)||[]);
-      }else{
-        cands=text.split(/\r?\n/);
+        cands = (text.match(urlRe)||[]).concat(text.match(userRe)||[]);
+      } else {
+        cands = (text||'').split(/\r?\n/);
       }
-      const lines=skipBlank.checked?cands.filter(s=>s.trim().length):cands;
-      const uniq=dedupe.checked?[...new Set(lines)]:lines;
-      results=uniq.map(parseInput).map((r,i)=>({...r,idx:i+1}));
+      const lines = skipBlank.checked ? cands.filter(s=>s.trim().length) : cands;
+      const uniq = dedupe.checked ? Array.from(new Set(lines)) : lines;
+      results = uniq.map(parseInput).map((r,i)=> ({...r, idx:i+1}));
       render();
     }
 
     function render(){
-      tableBody.innerHTML='';
-      results.forEach(r=>{
-        const tr=document.createElement('tr');
-        tr.innerHTML=`<td>${r.idx}</td><td>${r.original.startsWith('http')?`<a href="${r.original}" target="_blank">${r.original}</a>`:r.original}</td><td>${r.username||''}</td><td>${r.tweet_id||''}</td><td style="color:${r.valid?'#34d399':'#f59e0b'}">${r.valid?'ok':'invalid'}</td>`;
+      tableBody.innerHTML = '';
+      results.forEach(r => {
+        const tr = document.createElement('tr');
+        const linkHtml = r.original.startsWith('http')
+          ? `<a href="${r.original}" target="_blank" rel="noopener noreferrer">${r.original}</a>`
+          : r.original;
+        const statusColor = r.valid ? '#34d399' : '#f59e0b';
+        tr.innerHTML = `
+          <td>${r.idx}</td>
+          <td>${linkHtml}</td>
+          <td>${r.username||''}</td>
+          <td>${r.tweet_id||''}</td>
+          <td style="color:${statusColor}">${r.valid?'ok':'invalid'}</td>`;
         tableBody.appendChild(tr);
       });
-      totalLinks.textContent=`Tổng: ${results.length} link`;
+      totalLinks.textContent = `Tổng link: ${results.filter(r=>r.original.startsWith('http')).length}`;
+      totalUsers.textContent = `Tổng username: ${results.filter(r=>r.username).length}`;
     }
 
-    function copyToClipboard(text){navigator.clipboard.writeText(text).then(()=>alert('Đã copy')).catch(()=>alert('Copy lỗi'))}
-
-    btnCopyUrls.onclick=()=>copyToClipboard(results.map(r=>r.original).filter(o=>o.startsWith('http')).join('\n'));
-    btnCopyUsernames.onclick=()=>copyToClipboard(results.map(r=>r.username).filter(Boolean).join('\n'));
-    btnCopyIds.onclick=()=>copyToClipboard(results.map(r=>r.tweet_id).filter(Boolean).join('\n'));
-
-    btnDownloadTxt.onclick=()=>{
-      const txt=results.map(r=>`${r.original}\n${r.username}\n${r.tweet_id}`).join('\n');
-      const blob=new Blob([txt],{type:'text/plain'});
-      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='data.txt';a.click();
+    function copyToClipboard(text){
+      navigator.clipboard.writeText(text).then(()=>alert('Đã copy')).catch(()=>alert('Copy lỗi'));
     }
 
-    btnExtract.onclick=()=>extract(input.value);
+    btnCopyUrls.onclick = () => copyToClipboard(results.filter(r=>r.original.startsWith('http')).map(r=>r.original).join('\n'));
+    btnCopyUsernames.onclick = () => copyToClipboard(results.map(r=>r.username).filter(Boolean).join('\n'));
+    btnCopyIds.onclick = () => copyToClipboard(results.map(r=>r.tweet_id).filter(Boolean).join('\n'));
+
+    btnDownloadTxt.onclick = () => {
+      const txt = results.map(r=>`${r.original}\n${r.username}\n${r.tweet_id}`).join('\n');
+      const blob = new Blob([txt],{type:'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'data.txt';
+      a.click();
+    };
+
+    btnExtract.onclick = () => extract(input.value);
+
+    // Drag & drop
+    const dropzone = document.getElementById('dropzone');
+    ['dragenter','dragover'].forEach(evt=> dropzone.addEventListener(evt, e=>{e.preventDefault(); dropzone.style.background='#0b1220';}));
+    ['dragleave','drop'].forEach(evt=> dropzone.addEventListener(evt, e=>{e.preventDefault(); dropzone.style.background='transparent';}));
+    dropzone.addEventListener('drop', async (e)=>{ const f=e.dataTransfer.files?.[0]; if(!f) return; const t=await f.text(); input.value=t; extract(t); });
   </script>
 </body>
 </html>
