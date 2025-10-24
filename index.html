@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>X Username Extractor by K</title>
+  <title>X Username Extractor — GitHub Pages</title>
   <style>
     :root {
       --bg: #0b0d10;
@@ -57,7 +57,7 @@
     th,td{padding:10px 12px;border-bottom:1px solid #1f2937;font-size:13px}
     tbody tr:hover{background:#111827}
 
-    .table-container{max-height:500px;overflow-y:auto} /* scroll cho bảng */
+    .table-container{max-height:500px;overflow-y:auto}
 
     .stat{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px;margin-top:8px}
     .pill{border:1px solid #263042;padding:4px 8px;border-radius:999px}
@@ -73,12 +73,12 @@
 <body>
   <div class="container">
     <header>
-      <h1>X Username Extractor</h1>
+      <h1>Lọc LINK/USERNAME X by K</h1>
       <span class="tag"> </span>
     </header>
     <div class="grid">
       <section class="card">
-        <textarea id="input" placeholder="Dán link tại đây"></textarea>
+        <textarea id="input" placeholder="Dán link hoặc username (@user) tại đây"></textarea>
         <div class="row" style="margin-top:10px;align-items:center;justify-content:space-between">
           <div class="row" style="gap:8px">
             <input id="dedupe" type="checkbox" checked /> <label for="dedupe" class="hint">Loại bỏ trùng</label>
@@ -94,13 +94,16 @@
 
       <aside class="card">
         <h3 style="margin-top:0">Xuất kết quả</h3>
-        <div class="row" style="flex-wrap:wrap">
-          <button id="btnCopyUrls" class="btn secondary" type="button">Copy URLs</button>
-          <button id="btnCopyUsernames" class="btn secondary" type="button">Copy Usernames</button>
-          <button id="btnCopyIds" class="btn secondary" type="button">Copy Tweet IDs</button>
-          <button id="btnDownloadTxt" class="btn secondary" type="button">Tải TXT</button>
-        </div>
-        <div class="stat"><span id="totalLinks">Tổng: 0 link</span></div>
+        <div class=\"row\" style=\"flex-wrap:wrap\">
+          <button id=\"btnCopyUrls\" class=\"btn\" type=\"button\">Copy URLs<\/button>
+          <button id=\"btnCopyUsernames\" class=\"btn\" type=\"button\">Copy Usernames<\/button>
+          <button id=\"btnCopyIds\" class=\"btn\" type=\"button\">Copy Tweet IDs<\/button>
+          <button id=\"btnDownloadTxt\" class=\"btn\" type=\"button\">Tải TXT<\/button>
+        <\/div>
+        <div class=\"stat\" style=\"gap:12px\">
+          <span class=\"pill\" id=\"totalLinks\">Tổng link: 0<\/span>
+          <span class=\"pill\" id=\"totalUsers\">Tổng username: 0<\/span>
+        <\/div>
       </aside>
     </div>
 
@@ -134,15 +137,22 @@
     const skipBlank=document.getElementById('skipBlank');
     const findUrlsToggle=document.getElementById('findUrls');
     const totalLinks=document.getElementById('totalLinks');
+    const totalUsers=document.getElementById('totalUsers');
 
     let results=[];
     const SOURCES=['x.com','twitter.com','mobile.twitter.com','fxtwitter.com','vxtwitter.com','nitter.net'];
 
-    function parseUrl(raw){
+    function parseInput(raw){
+      raw=raw.trim();
+      if(!raw) return {original:raw,valid:false};
+      // Nếu là username dạng @user
+      if(/^@\w+$/i.test(raw)){
+        return {original:raw,username:raw.replace('@',''),tweet_id:'',valid:true};
+      }
+      // Nếu là link
       try{
-        let s=raw.trim();
-        if(!/^https?:\/\//i.test(s)) s='https://'+s;
-        const u=new URL(s);
+        if(!/^https?:\/\//i.test(raw)) raw='https://'+raw;
+        const u=new URL(raw);
         if(!SOURCES.some(h=>u.hostname.includes(h))) return {original:raw,valid:false};
         const p=u.pathname.split('/').filter(Boolean);
         if(p.length>=3 && p[1]==='status') return {original:raw,username:p[0],tweet_id:p[2],valid:true};
@@ -154,10 +164,15 @@
     function extract(text){
       let cands=[];
       const urlRe=/(?:https?:\/\/)?(?:www\.)?(?:x\.com|twitter\.com|mobile\.twitter\.com|fxtwitter\.com|vxtwitter\.com|nitter\.net)\/[^\s)]+/gi;
-      if(findUrlsToggle.checked){cands=(text.match(urlRe)||[]);}else{cands=text.split(/\r?\n/);} 
+      const userRe=/@[a-zA-Z0-9_]+/g;
+      if(findUrlsToggle.checked){
+        cands=(text.match(urlRe)||[]).concat(text.match(userRe)||[]);
+      }else{
+        cands=text.split(/\r?\n/);
+      }
       const lines=skipBlank.checked?cands.filter(s=>s.trim().length):cands;
       const uniq=dedupe.checked?[...new Set(lines)]:lines;
-      results=uniq.map(parseUrl).map((r,i)=>({...r,idx:i+1}));
+      results=uniq.map(parseInput).map((r,i)=>({...r,idx:i+1}));
       render();
     }
 
@@ -165,15 +180,17 @@
       tableBody.innerHTML='';
       results.forEach(r=>{
         const tr=document.createElement('tr');
-        tr.innerHTML=`<td>${r.idx}</td><td><a href="${r.original}" target="_blank">${r.original}</a></td><td>${r.username||''}</td><td>${r.tweet_id||''}</td><td style="color:${r.valid?'#34d399':'#f59e0b'}">${r.valid?'ok':'invalid'}</td>`;
+        tr.innerHTML=`<td>${r.idx}</td><td>${r.original.startsWith('http')?`<a href="${r.original}" target="_blank">${r.original}</a>`:r.original}</td><td>${r.username||''}</td><td>${r.tweet_id||''}</td><td style="color:${r.valid?'#34d399':'#f59e0b'}">${r.valid?'ok':'invalid'}</td>`;
         tableBody.appendChild(tr);
       });
-      totalLinks.textContent=`Tổng: ${results.length} link`;
+      totalLinks.textContent=`Tổng link: ${results.length}`;
+      const userCount = results.filter(r=>r.username).length;
+      if(totalUsers) totalUsers.textContent = `Tổng username: ${userCount}`;
     }
 
     function copyToClipboard(text){navigator.clipboard.writeText(text).then(()=>alert('Đã copy')).catch(()=>alert('Copy lỗi'))}
 
-    btnCopyUrls.onclick=()=>copyToClipboard(results.map(r=>r.original).join('\n'));
+    btnCopyUrls.onclick=()=>copyToClipboard(results.map(r=>r.original).filter(o=>o.startsWith('http')).join('\n'));
     btnCopyUsernames.onclick=()=>copyToClipboard(results.map(r=>r.username).filter(Boolean).join('\n'));
     btnCopyIds.onclick=()=>copyToClipboard(results.map(r=>r.tweet_id).filter(Boolean).join('\n'));
 
