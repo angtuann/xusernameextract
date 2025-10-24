@@ -59,10 +59,11 @@
 
     .table-container{max-height:500px;overflow-y:auto} /* scroll cho bảng */
 
-    .stat{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px}
+    .stat{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px;margin-top:8px}
     .pill{border:1px solid #263042;padding:4px 8px;border-radius:999px}
     .ok{color:var(--ok)}
     .warn{color:var(--warning)}
+
     .dropzone{border:1px dashed #334155;border-radius:14px;padding:12px;text-align:center;color:var(--muted)}
 
     a{color:var(--link);text-decoration:none}
@@ -72,7 +73,7 @@
 <body>
   <div class="container">
     <header>
-      <h1>X Username Extractor by K</h1>
+      <h1>X Username Extractor</h1>
       <span class="tag"> </span>
     </header>
     <div class="grid">
@@ -99,6 +100,7 @@
           <button id="btnCopyIds" class="btn secondary" type="button">Copy Tweet IDs</button>
           <button id="btnDownloadTxt" class="btn secondary" type="button">Tải TXT</button>
         </div>
+        <div class="stat"><span id="totalLinks">Tổng: 0 link</span></div>
       </aside>
     </div>
 
@@ -131,6 +133,7 @@
     const dedupe=document.getElementById('dedupe');
     const skipBlank=document.getElementById('skipBlank');
     const findUrlsToggle=document.getElementById('findUrls');
+    const totalLinks=document.getElementById('totalLinks');
 
     let results=[];
     const SOURCES=['x.com','twitter.com','mobile.twitter.com','fxtwitter.com','vxtwitter.com','nitter.net'];
@@ -162,9 +165,10 @@
       tableBody.innerHTML='';
       results.forEach(r=>{
         const tr=document.createElement('tr');
-        tr.innerHTML=`<td>${r.idx}</td><td><a href="${r.original}" target="_blank">${r.original}</a></td><td>${r.username||''}</td><td>${r.tweet_id||''}</td><td>${r.valid?'ok':'invalid'}</td>`;
+        tr.innerHTML=`<td>${r.idx}</td><td><a href="${r.original}" target="_blank">${r.original}</a></td><td>${r.username||''}</td><td>${r.tweet_id||''}</td><td style="color:${r.valid?'#34d399':'#f59e0b'}">${r.valid?'ok':'invalid'}</td>`;
         tableBody.appendChild(tr);
       });
+      totalLinks.textContent=`Tổng: ${results.length} link`;
     }
 
     function copyToClipboard(text){navigator.clipboard.writeText(text).then(()=>alert('Đã copy')).catch(()=>alert('Copy lỗi'))}
