@@ -57,6 +57,8 @@
     th,td{padding:10px 12px;border-bottom:1px solid #1f2937;font-size:13px}
     tbody tr:hover{background:#111827}
 
+    .table-container{max-height:500px;overflow-y:auto} /* scroll cho bảng */
+
     .stat{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px}
     .pill{border:1px solid #263042;padding:4px 8px;border-radius:999px}
     .ok{color:var(--ok)}
@@ -101,7 +103,7 @@
     </div>
 
     <section class="card" style="margin-top:16px">
-      <div style="overflow:auto">
+      <div class="table-container">
         <table id="table">
           <thead>
             <tr>
